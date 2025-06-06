@@ -13,11 +13,11 @@ const c = canvas.getContext("2d")
 
 c.fillRect(0,0,canvas.width, canvas.height)
 
-const spriteP = "img/personas/mino/idle/mino_idle_anim.png"
-const spriteE = "img/personas/mino/idle/mino_idle_anim.png"
+const spriteP = "img/characters/mino/idle/mino_idle_anim.png"
+const spriteE = "img/characters/mino/idle/mino_idle_anim.png"
 
 const scenario = new Image()
-scenario.src = "img/cenarito/cenario.jpg"
+scenario.src = "img/scenes/forest/background_forest.png"
 
 let temp
 const gravity = 0.2
@@ -43,7 +43,7 @@ class Sprite {
         this.position.x += this.velocity.x
         this.position.y += this.velocity.y
 
-        if (this.position.y + this.velocity.y + this.size.dy + 30 >= canvas.height) {     
+        if (this.position.y + this.velocity.y + this.size.dy - 10 >= canvas.height) {     
             this.velocity.y = 0
         } else this.velocity.y += gravity
     }
@@ -52,7 +52,7 @@ class Sprite {
 // Characters
 const player = new Sprite({
     position: {
-        x: canvas.width / 3,
+        x: canvas.width / 6,
         y: 100
     },
     color: spriteP,
