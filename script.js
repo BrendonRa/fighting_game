@@ -1,11 +1,6 @@
 // Variables
 const canvas = document.querySelector("#canvas")
 
-let fundoPosicaoX
-let fundoPosicaoY
-
-const background = document.body.style
-
 canvas.width = 1024
 canvas.height = 576
 
@@ -13,28 +8,31 @@ const c = canvas.getContext("2d")
 
 c.fillRect(0,0,canvas.width, canvas.height)
 
-const spriteP = "img/characters/mino/idle/mino_idle_anim.png"
-const spriteE = "img/characters/mino/idle/mino_idle_anim.png"
+const spriteP = "img/characters/samurai/idle/idle1.png"
+const spriteE = "img/characters/samurai/idle/idle1.png"
 
-const scenario = new Image()
-scenario.src = "img/scenes/forest/background_forest.png"
+const scene = new Image()
+scene.src = "img/scenes/forest/background_forest.png"
 
 let temp
 const gravity = 0.2
 
 // Creation
 class Sprite {
-    constructor ({position, color, size, velocity}) {
+    constructor ({position, color, size, velocity, state}) {
         this.position = position
         this.color = color
         this.image = new Image()
         this.image.src = this.color
         this.size = size
         this.velocity = velocity
+        this.state = state
     }
 
     draw() {
-        c.drawImage(this.image, this.position.x, this.position.y, this.size.dx, this.size.dy)
+        if (this.state == "idle") {
+            c.drawImage(this.image, this.position.x, this.position.y, this.size.dx, this.size.dy)
+        }
     }
 
     update() {
@@ -50,6 +48,14 @@ class Sprite {
 }
 
 // Characters
+
+const samurai = {
+    idle: [],
+    walk: [],
+    attack: [],
+    death: []
+}
+
 const player = new Sprite({
     position: {
         x: canvas.width / 6,
@@ -63,10 +69,11 @@ const player = new Sprite({
     velocity: {
         x: 0,
         y: 0
-    }
+    },
+    state: "idle"
 })
 
-const enemy = new Sprite({
+const player2 = new Sprite({
     position: {
         x: (canvas.width / 3) * 2,
         y: 100
@@ -79,7 +86,8 @@ const enemy = new Sprite({
     velocity: {
         x: 0,
         y: 0
-    }
+    },
+    state: "idle"
 })
 
 // sides canva
@@ -129,8 +137,8 @@ window.addEventListener("keydown", function (event) {
     if (event.key === "w" && player.velocity.y === 0) {
         player.velocity.y = -6
     }
-    if (event.key === "ArrowUp" && enemy.velocity.y === 0) {
-        enemy.velocity.y = -6
+    if (event.key === "ArrowUp" && player2.velocity.y === 0) {
+        player2.velocity.y = -6
     }
 })
 
@@ -155,13 +163,13 @@ window.addEventListener("keyup", function (event) {
 function animate() {
     window.requestAnimationFrame(animate)
     
-    c.drawImage(scenario, 0, 0, canvas.width, canvas.height)
+    c.drawImage(scene, 0, 0, canvas.width, canvas.height)
     
     player.update()
-    enemy.update()
+    player2.update()
 
     player.velocity.x = 0
-    enemy.velocity.x = 0
+    player2.velocity.x = 0
 
     if (keys.leftP.pressed) {
         if (player.position.x >= edge.left) {
@@ -176,14 +184,14 @@ function animate() {
     }
 
     if (keys.leftE.pressed) {
-        if (enemy.position.x >= edge.left) {
-            enemy.velocity.x = -3
+        if (player2.position.x >= edge.left) {
+            player2.velocity.x = -3
         }
     }
 
     if (keys.rightE.pressed) {
-        if (enemy.position.x <= edge.right) {
-            enemy.velocity.x = 3
+        if (player2.position.x <= edge.right) {
+            player2.velocity.x = 3
         }
     }
     
@@ -191,14 +199,8 @@ function animate() {
         player.velocity.y = -6
     }
 
-    if (keys.jumpE.pressed && enemy.velocity.y <= 0) {
-        enemy.velocity.y = -6
+    if (keys.jumpE.pressed && player2.velocity.y <= 0) {
+        player2.velocity.y = -6
     }
-
-    fundoPosicaoX = player.position.x
-    fundoPosicaoY = player.position.y
-
-    background.backgroundPositionX = fundoPosicaoX
-    background.backgroundPositionY = fundoPosicaoY
 }
 animate()
