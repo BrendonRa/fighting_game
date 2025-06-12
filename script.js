@@ -15,24 +15,29 @@ const scene = new Image()
 scene.src = "img/scenes/forest/background_forest.png"
 
 const gravity = 0.2
-let anim
 
 // Creation
 class Sprite {
-    constructor ({position, sprite, size, velocity, state, direction, frameAnim}) {
+    constructor ({position, sprite, size, velocity, state, direction, dir, frameAnim}) {
         this.position = position
         this.sprite = sprite
         this.size = size
         this.velocity = velocity
         this.state = state
         this.direction = direction
+        this.dir = dir
         this.frameAnim = frameAnim
+        this.image = new Image()
     }
 
     draw() {
-        this.image = new Image()
         this.image.src = this.sprite[Math.ceil(this.frameAnim / 20)]
+        c.save()
+        if (this.direction.x != 0) this.dir = this.direction.x
+        if (this.dir == -1) c.translate((this.position.x + this.position.x) + this.size.dx / 2, 1)
+        c.scale(this.dir, 1)
         c.drawImage(this.image, this.position.x, this.position.y, this.size.dx, this.size.dy)
+        c.restore()
     }
 
     update() {
@@ -47,25 +52,22 @@ class Sprite {
 
         this.velocity.x = 0
 
-        if (this.position.x >= edge.left) {
+        if (this.position.x >= edge.left && this.position.x <= edge.right) {
             this.velocity.x = 3 * this.direction.x
-        }
-        
-        if (this.position.x <= edge.right) {
-            this.velocity.x = 3 * this.direction.x
+        } else if (this.position.x >= edge.left - player.size.dx / 2 && this.position.x <= edge.right + player.size.dx / 2) {
+            this.velocity.x = 3 * (this.dir * -1)
         }
 
-        /*if (keys.jumpP.pressed && this.velocity.y <= 0) {
-            this.velocity.y = -6 * this.direction.y
-        }*/
-
-        if (this.velocity.x != 0 && this.state != "jump" && this.state == "idle") this.sprite = samurai.walk
-        if (this.velocity.x == 0 && this.state != "jump") this.sprite = samurai.idle
+        if (this.velocity.x != 0 && this.state != "jump" && this.state === "idle") this.sprite = samurai.walk
+        if (this.velocity.x == 0 && this.state != "jump" && this.state !== "attack") this.sprite = samurai.idle
 
         this.frameAnim++
         if (this.frameAnim >= (this.sprite.length - 1) * 20) this.frameAnim = 0
 
-        console.log(this.frameAnim)
+        if (this.state === "attack") {
+            this.sprite = samurai.attack
+            if (Math.ceil(this.frameAnim / 20) == this.sprite.length - 1) this.state = "idle"
+        }
     }
 }
 
@@ -146,13 +148,14 @@ const player2 = new Sprite({
         x: 0,
         y: 0
     },
+    dir: -1,
     frameAnim: 0
 })
 
 // sides canva
 const edge = {
     left: 0,
-    right: canvas.width - player.size.dx
+    right: canvas.width - player.size.dx / 2
 }
 
 // imputs
@@ -178,6 +181,13 @@ window.addEventListener("keydown", function (event) {
     if (event.key === "ArrowUp" && player2.velocity.y === 0) {
         player2.velocity.y = -6
     }
+
+    if (event.key === "e" && player.state !== "death") {
+        player.state = "attack"
+    }
+    if (event.key === "l" && player2.state !== "death") {
+        player2.state = "attack"
+    }
 })
 
 window.addEventListener("keyup", function (event) {
@@ -200,10 +210,45 @@ window.addEventListener("keyup", function (event) {
 // Animation
 function animate() {
     window.requestAnimationFrame(animate)
-    
+
     c.drawImage(scene, 0, 0, canvas.width, canvas.height)
     
     player.update()
     player2.update()
+
+    /*
+    if (collision(player, player2) != false) {
+        edge.right = collision(player, player2)
+    } else {
+        edge.right = canvas.width - player.size.dx / 2
+    }
+    */
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 animate()
+
+// Collision
+function collision(obj1, obj2) {
+    // Side left Obj1 and Side Right Obj2
+    if (obj1.position.x < obj2.position.x + obj2.size.dx) {
+        return obj2.position.x
+    }
+
+    // Side Right Obj1 and Side Left Obj2
+    if (obj1.position.x + obj1.size.dx > obj2.position.x) {
+        return obj1.position.x - obj1.size.dx / 2
+    }
+    /*
+    // Side Up Obj1 and Side Down Obj2
+    if (obj1.position.y < obj2.position.y + obj2.size.dy) {
+        return obj2.position.y
+    }
+
+    // Side Down Obj1 and Side Up Obj2
+    if (obj1.position.y + obj1.size.dy > obj2.position.y) {
+        return obj1.position.y
+    }
+    */
+    return false
+}
